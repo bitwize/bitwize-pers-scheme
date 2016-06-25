@@ -16,6 +16,12 @@
 (define (buffered-reader-push-string! br s)
   (for-each (cut buffered-reader-push-char! br <>) (reverse! (string->list s))))
 
+(define (buffered-reader-push-item! br i)
+  (cond
+   ((char? i) (buffered-reader-push-char! br i))
+   ((string? i) (buffered-reader-push-string! br i))
+   ((list? i) (for-each (lambda (j) (buffered-reader-push-item! br j)) (reverse i)))))
+
 (define (buffered-reader-next-char! br)
   (let* ((buf (buffered-reader-buffer br)))
     (cond
@@ -73,7 +79,7 @@
        (reverse! results)
        (let* ((result ((car fs) br)))
 	 (cond
-	  ((not result) (for-each (cut buffered-reader-push-string! br <>) results) #f)
+	  ((not result) (for-each (cut buffered-reader-push-item! br <>) results) #f)
 	  (else (loop (cdr fs) (cons result results)))))))))
 
 (define (parse-multi/list parser)
